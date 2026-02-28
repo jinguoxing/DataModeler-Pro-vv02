@@ -101,6 +101,54 @@ export const ObjectGenerationBoard: React.FC = () => {
 
   const selectedObject = objects.find(o => o.id === selectedObjectId);
 
+  const handleSplitObject = () => {
+    if (!selectedObject || !newObjectName || splitSelection.length === 0) return;
+    
+    const splitAttributes = selectedObject.attributes.filter(a => splitSelection.includes(a.id));
+    const remainingAttributes = selectedObject.attributes.filter(a => !splitSelection.includes(a.id));
+    
+    const newObj: BusinessObjectCandidate = {
+      id: `obj-${Date.now()}`,
+      name: newObjectName,
+      description: `Split from ${selectedObject.name}`,
+      sourceTableId: selectedObject.sourceTableId,
+      status: 'PENDING',
+      confidence: 0.85,
+      attributes: splitAttributes
+    };
+    
+    setObjects(prev => [
+      ...prev.map(o => o.id === selectedObject.id ? { ...o, attributes: remainingAttributes } : o),
+      newObj
+    ]);
+    
+    setIsSplitModalOpen(false);
+    setSplitSelection([]);
+    setNewObjectName('');
+  };
+
+  const handleMergeObject = () => {
+    if (!selectedObject || !mergeTargetId) return;
+    
+    const targetObj = objects.find(o => o.id === mergeTargetId);
+    if (!targetObj) return;
+    
+    setObjects(prev => {
+      const filtered = prev.filter(o => o.id !== mergeTargetId);
+      return filtered.map(o => o.id === selectedObject.id 
+        ? { ...o, attributes: [...o.attributes, ...targetObj.attributes] } 
+        : o
+      );
+    });
+    
+    setIsMergeModalOpen(false);
+    setMergeTargetId('');
+  };
+
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    e.dataTransfer.setData('attributeId', id);
+  };
+
   // Group attributes by type
   const groupedAttributes = selectedObject?.attributes.reduce((acc, attr) => {
     if (!acc[attr.type]) acc[attr.type] = [];

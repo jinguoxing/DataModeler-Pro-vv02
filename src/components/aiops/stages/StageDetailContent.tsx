@@ -7,7 +7,9 @@ import {
   Shield, Zap, Clock, Target, ExternalLink, Activity,
   MousePointer2, GitBranch, AlertOctagon, ArrowUpRight,
   ListFilter, Layers, FileJson, ArrowUp, Table2, GitCompare,
-  AlertTriangle, EyeOff, ChevronRight, X, Info, Check, RotateCw
+  AlertTriangle, EyeOff, ChevronRight, X, Info, Check, RotateCw,
+  LayoutGrid, BarChart3, GitMerge, Box, Fingerprint, Link2, Scissors,
+  Combine, Move, Download
 } from 'lucide-react';
 
 interface StageDetailProps {
@@ -670,19 +672,150 @@ export const StageDetailContent: React.FC<StageDetailProps> = ({ stageId, reques
         );
       case 'E':
         return (
-          <div className="space-y-6">
-            <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Lightbulb className="text-cyan-400" size={20} /> 候选对象建议
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* E.1 Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <LayoutGrid className="text-cyan-400" size={18} />
+                  <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">候选对象总数</h4>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-3xl font-bold text-white">12</p>
+                  <p className="text-xs text-slate-500">个对象建议</p>
+                </div>
+              </div>
+              
+              <div className="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart3 className="text-emerald-400" size={18} />
+                  <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">评分分布</h4>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 space-y-1">
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-emerald-400">高 (0.8+)</span>
+                      <span className="text-slate-400">5</span>
+                    </div>
+                    <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500" style={{ width: '42%' }}></div>
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-amber-400">中 (0.5-0.8)</span>
+                      <span className="text-slate-400">4</span>
+                    </div>
+                    <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+                      <div className="h-full bg-amber-500" style={{ width: '33%' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <GitMerge className="text-indigo-400" size={18} />
+                  <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">合并/拆分建议</h4>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-3xl font-bold text-white">3</p>
+                  <p className="text-xs text-slate-500">处潜在优化</p>
+                </div>
+              </div>
+            </div>
+
+            {/* E.2 Candidate List */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider">
+                <Box className="text-amber-400" size={18} /> 候选对象列表 (Top Candidates)
               </h3>
-              <div className="space-y-3">
-                {['订单明细视图', '客户画像宽表', '商品销售指标集'].map(item => (
-                  <div key={item} className="p-4 bg-slate-900 rounded-lg border border-slate-700 flex items-center justify-between group hover:border-cyan-500/50 transition-colors cursor-pointer">
-                    <span className="font-medium">{item}</span>
-                    <button className="text-xs text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity">查看详情</button>
+              <div className="grid grid-cols-1 gap-4">
+                {[
+                  { 
+                    name: 'SalesOrder (销售订单)', 
+                    score: 0.94, 
+                    metrics: { identity: 0.98, cohesion: 0.92, separation: 0.88, support: 0.95 } 
+                  },
+                  { 
+                    name: 'CustomerProfile (客户画像)', 
+                    score: 0.88, 
+                    metrics: { identity: 0.85, cohesion: 0.90, separation: 0.82, support: 0.88 } 
+                  },
+                  { 
+                    name: 'ProductCatalog (商品目录)', 
+                    score: 0.76, 
+                    metrics: { identity: 0.72, cohesion: 0.80, separation: 0.75, support: 0.82 },
+                    suggestion: '建议与 Inventory 合并'
+                  },
+                ].map((obj, i) => (
+                  <div key={i} className="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 backdrop-blur-sm group hover:border-indigo-500/30 transition-all">
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center border border-slate-700 group-hover:border-indigo-500/50 transition-colors">
+                          <Box className="text-slate-500 group-hover:text-indigo-400" size={24} />
+                        </div>
+                        <div>
+                          <h4 className="text-base font-bold text-white">{obj.name}</h4>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">ScoreObject</span>
+                            <span className="text-sm font-mono font-bold text-emerald-400">{obj.score}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-700 transition-all">
+                          合并/拆分建议
+                        </button>
+                        <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-900/20 transition-all">
+                          在建模页打开
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-6">
+                      {[
+                        { label: '身份强度', icon: <Fingerprint size={12} />, value: obj.metrics.identity },
+                        { label: '内聚度', icon: <Combine size={12} />, value: obj.metrics.cohesion },
+                        { label: '分离度', icon: <Move size={12} />, value: obj.metrics.separation },
+                        { label: '关系支撑', icon: <Link2 size={12} />, value: obj.metrics.support },
+                      ].map((m, j) => (
+                        <div key={j} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] text-slate-500 uppercase font-bold flex items-center gap-1">
+                              {m.icon} {m.label}
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-300">{m.value}</span>
+                          </div>
+                          <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+                            <div className="h-full bg-indigo-500" style={{ width: `${m.value * 100}%` }}></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {obj.suggestion && (
+                      <div className="mt-4 p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl flex items-center gap-2">
+                        <AlertCircle className="text-amber-400" size={14} />
+                        <p className="text-[11px] text-amber-400 font-medium">{obj.suggestion}</p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* E.3 Actions */}
+            <div className="grid grid-cols-2 gap-3 pt-4">
+              <button className="py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-bold transition-all shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2">
+                <LayoutGrid size={16} /> 打开候选对象工作台
+              </button>
+              <button className="py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-2xl text-xs font-bold border border-slate-700 transition-all flex items-center justify-center gap-2">
+                <Download size={16} /> 导出候选对象 (JSON/Excel)
+              </button>
+              <button className="col-span-2 py-3 bg-slate-900/50 hover:bg-slate-800 text-slate-400 hover:text-white rounded-2xl text-xs font-bold border border-dashed border-slate-700 transition-all flex items-center justify-center gap-2">
+                <RefreshCcw size={16} /> 基于最新语义裁决重新生成 (Rebuild)
+              </button>
             </div>
           </div>
         );

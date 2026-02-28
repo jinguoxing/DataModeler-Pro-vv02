@@ -26,6 +26,22 @@ const INITIAL_STATE: SemanticState = {
 };
 
 // ... (MOCK_PLAN remains same)
+const MOCK_PLAN: ExecutionPlan = {
+  id: 'plan-01',
+  intent: '',
+  scope: ['retail_orders', 'retail_customers'],
+  actions: [
+    { type: 'ACCEPT_HIGH_CONF_FIELDS', label: '接受高置信度字段', count: 124 },
+    { type: 'RESOLVE_MAPPING_CONFLICTS', label: '解决映射冲突', count: 4 },
+    { type: 'UPDATE_TABLE_TYPE', label: '更新表类型', count: 2 }
+  ],
+  impact: {
+    coverage: { before: 84, after: 96, trend: 'UP' },
+    risk: { before: 'MEDIUM', after: 'LOW', trend: 'DOWN' },
+    must_fix: { before: 2, after: 0, trend: 'DOWN' }
+  },
+  status: 'DRAFT'
+};
 
 export const MainSCC: React.FC = () => {
   const [state, setState] = useState<SemanticState>(INITIAL_STATE);
