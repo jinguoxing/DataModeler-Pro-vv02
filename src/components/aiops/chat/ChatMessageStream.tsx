@@ -4,14 +4,24 @@ import { ChatMessage } from '../../../types/aiops';
 import { 
   Bot, User, Play, CheckCircle2, AlertCircle, 
   Clock, FileText, ChevronRight, ListTodo, Package, 
-  Activity, Info, Sparkles, Wand2, Search, Brain
+  Activity, Info, Sparkles, Wand2, Search, Brain, Download
 } from 'lucide-react';
 
 interface ChatMessageStreamProps {
   messages: ChatMessage[];
+  onConfirmPlan?: (msgId: string) => void;
+  onModifyPlan?: (msgId: string) => void;
+  onIgnoreBlocker?: (msgId: string, blockerIdx: number) => void;
+  onResolveBlocker?: (msgId: string, blockerIdx: number) => void;
 }
 
-export const ChatMessageStream: React.FC<ChatMessageStreamProps> = ({ messages }) => {
+export const ChatMessageStream: React.FC<ChatMessageStreamProps> = ({ 
+  messages,
+  onConfirmPlan,
+  onModifyPlan,
+  onIgnoreBlocker,
+  onResolveBlocker
+}) => {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
       {messages.map((msg) => (
@@ -23,7 +33,7 @@ export const ChatMessageStream: React.FC<ChatMessageStreamProps> = ({ messages }
           )}
           
           <div className={`max-w-[85%] ${msg.sender === 'user' ? 'order-1' : 'order-2'}`}>
-            {renderMessageContent(msg)}
+            {renderMessageContent(msg, { onConfirmPlan, onModifyPlan, onIgnoreBlocker, onResolveBlocker })}
             <div className={`text-[10px] text-slate-600 mt-1.5 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}>
               {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </div>
@@ -40,7 +50,7 @@ export const ChatMessageStream: React.FC<ChatMessageStreamProps> = ({ messages }
   );
 };
 
-const renderMessageContent = (msg: ChatMessage) => {
+const renderMessageContent = (msg: ChatMessage, actions: any) => {
   switch (msg.type) {
     case 'user':
       return (
@@ -49,11 +59,11 @@ const renderMessageContent = (msg: ChatMessage) => {
         </div>
       );
     case 'plan':
-      return <SystemPlanCard data={msg.data} />;
+      return <SystemPlanCard msgId={msg.id} data={msg.data} onConfirm={() => actions.onConfirmPlan?.(msg.id)} onModify={() => actions.onModifyPlan?.(msg.id)} />;
     case 'progress':
       return <SystemProgressCard data={msg.data} />;
     case 'blocker':
-      return <SystemBlockerCard data={msg.data} />;
+      return <SystemBlockerCard msgId={msg.id} data={msg.data} onIgnore={(idx) => actions.onIgnoreBlocker?.(msg.id, idx)} onResolve={(idx) => actions.onResolveBlocker?.(msg.id, idx)} />;
     case 'result':
       return <SystemResultCard data={msg.data} />;
     case 'deliverable':
@@ -67,30 +77,44 @@ const renderMessageContent = (msg: ChatMessage) => {
   }
 };
 
-const SystemPlanCard = ({ data }: { data: any }) => (
+const SystemPlanCard = ({ msgId, data, onConfirm, onModify }: { msgId: string; data: any; onConfirm: () => void; onModify: () => void }) => (
   <div className="bg-slate-900/80 p-5 rounded-2xl rounded-tl-none border border-indigo-500/30 shadow-xl shadow-indigo-900/10">
-    <div className="flex items-center gap-2 mb-4">
-      <Sparkles className="text-indigo-400" size={16} />
-      <h4 className="text-sm font-bold text-white uppercase tracking-wider">执行计划</h4>
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2">
+        <Sparkles className="text-indigo-400" size={16} />
+        <h4 className="text-sm font-bold text-white uppercase tracking-wider">执行计划</h4>
+      </div>
+      <div className="flex items-center gap-1 text-[10px] text-slate-500 font-bold uppercase">
+        <Clock size={10} className="text-indigo-400" /> 预计 15m
+      </div>
     </div>
     <div className="space-y-3">
       {data.steps.map((step: any, idx: number) => (
-        <div key={idx} className="flex items-start gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl">
-          <div className="w-5 h-5 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-400 flex-shrink-0">
+        <div key={idx} className="flex items-start gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl group hover:border-indigo-500/30 transition-all cursor-pointer">
+          <div className="w-5 h-5 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-400 flex-shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all">
             {idx + 1}
           </div>
-          <div>
-            <p className="text-sm font-medium text-slate-200">{step.title}</p>
+          <div className="flex-1">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-slate-200">{step.title}</p>
+              <ChevronRight size={12} className="text-slate-600 group-hover:text-indigo-400 transition-all" />
+            </div>
             <p className="text-xs text-slate-500 mt-0.5">{step.description}</p>
           </div>
         </div>
       ))}
     </div>
     <div className="mt-5 flex items-center gap-3">
-      <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+      <button 
+        onClick={onConfirm}
+        className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-900/20 active:scale-95"
+      >
         <Play size={14} /> 确认并开始
       </button>
-      <button className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-xl text-xs font-bold border border-slate-700 transition-all">
+      <button 
+        onClick={onModify}
+        className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-xs font-bold border border-slate-700 transition-all active:scale-95"
+      >
         修改计划
       </button>
     </div>
@@ -122,7 +146,7 @@ const SystemProgressCard = ({ data }: { data: any }) => (
   </div>
 );
 
-const SystemBlockerCard = ({ data }: { data: any }) => (
+const SystemBlockerCard = ({ msgId, data, onIgnore, onResolve }: { msgId: string; data: any; onIgnore: (idx: number) => void; onResolve: (idx: number) => void }) => (
   <div className="bg-slate-900/80 p-5 rounded-2xl rounded-tl-none border border-rose-500/30 shadow-xl shadow-rose-900/10">
     <div className="flex items-center gap-2 mb-4">
       <AlertCircle className="text-rose-400" size={16} />
@@ -130,14 +154,28 @@ const SystemBlockerCard = ({ data }: { data: any }) => (
     </div>
     <div className="space-y-3">
       {data.blockers.map((blocker: any, idx: number) => (
-        <div key={idx} className={`p-3 rounded-xl border ${blocker.type === 'hard' ? 'bg-rose-500/10 border-rose-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}>
-          <div className="flex items-center justify-between mb-1">
-            <span className={`text-[10px] font-bold uppercase ${blocker.type === 'hard' ? 'text-rose-400' : 'text-amber-400'}`}>
+        <div key={idx} className={`p-4 rounded-xl border ${blocker.type === 'hard' ? 'bg-rose-500/10 border-rose-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}>
+          <div className="flex items-center justify-between mb-2">
+            <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${blocker.type === 'hard' ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400'}`}>
               {blocker.type === 'hard' ? '硬性阻塞' : '建议任务'}
             </span>
-            <button className="text-[10px] text-slate-500 hover:text-white transition-colors underline">查看详情</button>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => onIgnore(idx)}
+                className="text-[10px] text-slate-500 hover:text-white transition-colors"
+              >
+                忽略
+              </button>
+              <div className="w-px h-2 bg-slate-700"></div>
+              <button 
+                onClick={() => onResolve(idx)}
+                className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors font-bold"
+              >
+                去处理
+              </button>
+            </div>
           </div>
-          <p className="text-sm font-medium text-slate-200">{blocker.title}</p>
+          <p className="text-sm font-medium text-slate-200 leading-snug">{blocker.title}</p>
         </div>
       ))}
     </div>
@@ -176,22 +214,33 @@ const SystemDeliverableCard = ({ data }: { data: any }) => (
       <Package className="text-indigo-400" size={16} />
       <h4 className="text-sm font-bold text-white uppercase tracking-wider">交付物汇总</h4>
     </div>
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 gap-3">
       {data.items.map((item: any, idx: number) => (
-        <div key={idx} className="p-3 bg-slate-800/50 border border-slate-700 rounded-xl hover:border-indigo-500/50 transition-all cursor-pointer group">
-          <div className="flex items-center gap-2 mb-2">
-            <FileText size={14} className="text-slate-500 group-hover:text-indigo-400" />
-            <span className="text-xs font-medium text-slate-200 truncate">{item.name}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] text-slate-500 uppercase">{item.type}</span>
-            <ChevronRight size={12} className="text-slate-600 group-hover:text-indigo-400" />
+        <div key={idx} className="p-4 bg-slate-800/50 border border-slate-700 rounded-xl hover:border-indigo-500/50 transition-all group">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-slate-400 group-hover:text-indigo-400 transition-all">
+                <FileText size={16} />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-200 truncate max-w-[180px]">{item.name}</p>
+                <p className="text-[10px] text-slate-500 uppercase font-bold">{item.type} • 1.2 MB</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+              <button className="p-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-all" title="预览">
+                <Search size={14} />
+              </button>
+              <button className="p-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-all" title="下载">
+                <Download size={14} />
+              </button>
+            </div>
           </div>
         </div>
       ))}
     </div>
-    <button className="w-full mt-4 py-2 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center justify-center gap-2">
-      <Package size={14} /> 查看所有交付物
+    <button className="w-full mt-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-700 transition-all flex items-center justify-center gap-2">
+      <Package size={14} /> 查看所有交付物 (12)
     </button>
   </div>
 );

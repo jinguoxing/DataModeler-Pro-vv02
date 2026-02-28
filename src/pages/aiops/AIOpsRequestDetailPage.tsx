@@ -21,6 +21,7 @@ export const AIOpsRequestDetailPage: React.FC = () => {
   const [request, setRequest] = useState<AIOpsRequest | null>(null);
   const [activeTab, setActiveTab] = useState<'chat' | 'runs' | 'tasks' | 'deliverables'>('chat');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isConsoleExpanded, setIsConsoleExpanded] = useState(true);
 
   useEffect(() => {
     const found = mockAIOpsRequests.find(r => r.id === requestId);
@@ -114,6 +115,55 @@ export const AIOpsRequestDetailPage: React.FC = () => {
     navigate(`/aiops/workbench/requests/${requestId}/stages/${sId}`);
   };
 
+  const handleConfirmPlan = (msgId: string) => {
+    if (request) {
+      const updatedRequest = { ...request };
+      updatedRequest.runs = [...updatedRequest.runs, {
+        id: Date.now().toString(),
+        stageId: 'A',
+        startTime: new Date().toISOString(),
+        status: 'running' as const,
+        progress: 0
+      }];
+      setRequest(updatedRequest);
+      
+      const systemMsg: ChatMessage = {
+        id: Date.now().toString(),
+        type: 'progress',
+        timestamp: new Date().toISOString(),
+        sender: 'ai',
+        data: {
+          progress: 5,
+          stats: [
+            { label: '当前状态', value: '正在初始化' },
+            { label: '预计耗时', value: '15m' }
+          ]
+        }
+      };
+      setMessages(prev => [...prev, systemMsg]);
+    }
+  };
+
+  const handleModifyPlan = (msgId: string) => {
+    handleSend("我想修改一下执行计划，能帮我调整吗？", false);
+  };
+
+  const handleIgnoreBlocker = (msgId: string, blockerIdx: number) => {
+    setMessages(prev => prev.map(msg => {
+      if (msg.id === msgId && msg.type === 'blocker') {
+        const newBlockers = [...msg.data.blockers];
+        newBlockers.splice(blockerIdx, 1);
+        return { ...msg, data: { ...msg.data, blockers: newBlockers } };
+      }
+      return msg;
+    }));
+  };
+
+  const handleResolveBlocker = (msgId: string, blockerIdx: number) => {
+    // For demo, navigate to stage B
+    handleStageClick('B');
+  };
+
   const closeDrawer = () => {
     navigate(`/aiops/workbench/requests/${requestId}`);
   };
@@ -147,16 +197,27 @@ export const AIOpsRequestDetailPage: React.FC = () => {
       </div>
 
       {/* Main Content Area: Split Layout */}
-      <div className="flex-1 flex gap-6 min-h-0">
+      <div className="flex-1 flex gap-6 min-h-0 relative">
         {/* Left Column: Chat & Plan */}
         <div className="flex-1 flex flex-col min-h-0 bg-slate-800/40 rounded-2xl border border-slate-700/50 backdrop-blur-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-700/50 bg-slate-900/30 flex items-center justify-between">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
               <MessageSquare size={14} className="text-indigo-400" /> 对话与计划
             </h3>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span className="text-[10px] text-slate-500 font-bold uppercase">AI 助手在线</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span className="text-[10px] text-slate-500 font-bold uppercase">AI 助手在线</span>
+              </div>
+              {!isConsoleExpanded && (
+                <button 
+                  onClick={() => setIsConsoleExpanded(true)}
+                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg transition-all border border-slate-700 flex items-center gap-2"
+                >
+                  <ListTodo size={14} />
+                  <span className="text-[10px] font-bold uppercase">展开控制台</span>
+                </button>
+              )}
             </div>
           </div>
           
@@ -167,7 +228,13 @@ export const AIOpsRequestDetailPage: React.FC = () => {
               assets={['public.orders', 'public.order_items', 'public.products', 'public.customers']}
               employee={{ name: '数据语义理解 (L2)', version: '1.2.4', level: 'L2' }}
             />
-            <ChatMessageStream messages={messages} />
+            <ChatMessageStream 
+              messages={messages} 
+              onConfirmPlan={handleConfirmPlan}
+              onModifyPlan={handleModifyPlan}
+              onIgnoreBlocker={handleIgnoreBlocker}
+              onResolveBlocker={handleResolveBlocker}
+            />
             <ChatComposer 
               onSend={handleSend} 
               onStartResume={() => {
@@ -193,9 +260,19 @@ export const AIOpsRequestDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Console */}
-        <div className="w-[500px] flex flex-col min-h-0">
-          <RunConsole request={request} onStageClick={handleStageClick} />
+        {/* Right Column: Console (Collapsible) */}
+        <div className={`transition-all duration-500 ease-in-out flex flex-col min-h-0 relative ${isConsoleExpanded ? 'w-[500px] opacity-100' : 'w-0 opacity-0 pointer-events-none'}`}>
+          <div className="h-full w-[500px]">
+            <RunConsole request={request} onStageClick={handleStageClick} />
+          </div>
+          
+          {/* Collapse Toggle Button */}
+          <button 
+            onClick={() => setIsConsoleExpanded(false)}
+            className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-12 bg-slate-800 border border-slate-700 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 transition-all z-10 shadow-xl"
+          >
+            <ChevronRight size={16} />
+          </button>
         </div>
       </div>
 

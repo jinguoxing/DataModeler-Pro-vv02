@@ -495,14 +495,14 @@ const StageCard: React.FC<StageCardProps> = ({ stageId, status, onClick }) => {
   }[stageId];
 
   return (
-    <div className={`p-5 rounded-2xl border transition-all ${
-      status === 'running' ? 'bg-cyan-500/5 border-cyan-500/30' : 
+    <div className={`p-5 rounded-2xl border transition-all group ${
+      status === 'running' ? 'bg-cyan-500/5 border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.05)]' : 
       status === 'hard-blocked' ? 'bg-rose-500/5 border-rose-500/30' :
       'bg-slate-800/30 border-slate-700/50 hover:border-slate-600'
     }`}>
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
             status === 'done' ? 'bg-emerald-500/10 text-emerald-400' :
             status === 'running' ? 'bg-cyan-500/10 text-cyan-400' :
             status === 'hard-blocked' ? 'bg-rose-500/10 text-rose-400' :
@@ -530,14 +530,33 @@ const StageCard: React.FC<StageCardProps> = ({ stageId, status, onClick }) => {
               </div>
           </div>
         </div>
-        <button 
-          onClick={onClick}
-          className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg text-[10px] font-bold transition-all flex items-center gap-1"
-        >
-          查看详情 <ChevronRight size={12} />
-        </button>
+        <div className="flex items-center gap-2">
+          {status === 'done' && (
+            <button className="p-2 hover:bg-slate-700 rounded-lg text-slate-500 hover:text-white transition-all opacity-0 group-hover:opacity-100" title="重新运行">
+              <RotateCcw size={14} />
+            </button>
+          )}
+          <button 
+            onClick={onClick}
+            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 border border-slate-700"
+          >
+            详情 <ChevronRight size={12} />
+          </button>
+        </div>
       </div>
-      <p className="text-xs text-slate-400 leading-relaxed">{stageInfo.summary}</p>
+      <p className="text-xs text-slate-400 leading-relaxed mb-4">{stageInfo.summary}</p>
+      
+      {status === 'running' && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-[10px] font-bold uppercase">
+            <span className="text-cyan-400">正在执行 L2 语义推断...</span>
+            <span className="text-slate-500">85%</span>
+          </div>
+          <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-full bg-cyan-500 animate-pulse" style={{ width: '85%' }}></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

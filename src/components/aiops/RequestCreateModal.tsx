@@ -51,22 +51,52 @@ export const RequestCreateModal: React.FC<RequestCreateModalProps> = ({ isOpen, 
     specialty: '语义建模、指标定义、画像分析'
   });
 
-  // Predicted plan based on description
-  const [predictedPlan, setPredictedPlan] = useState<any[]>([
-    { id: 'A', name: '数据源配置', enabled: true, icon: <Database size={14} /> },
-    { id: 'B', name: '扫描与画像', enabled: true, icon: <Search size={14} /> },
-    { id: 'C', name: '质量检测', enabled: true, icon: <ShieldCheck size={14} /> },
-    { id: 'D', name: '语义理解', enabled: true, icon: <Brain size={14} /> },
-    { id: 'E', name: '对象生成', enabled: true, icon: <Lightbulb size={14} /> },
-  ]);
+  const employees = {
+    semantic: {
+      id: 'emp-l2-semantic',
+      name: '数据语义理解 (L2)',
+      level: 'L2',
+      scopeMatch: true,
+      specialty: '语义建模、指标定义、画像分析'
+    },
+    quality: {
+      id: 'emp-l1-quality',
+      name: '数据质量专家 (L1)',
+      level: 'L1',
+      scopeMatch: true,
+      specialty: '质量规则配置、异常检测、波动分析'
+    }
+  };
 
-  const handleSendMessage = () => {
-    if (!description.trim()) return;
+  const planTemplates = {
+    full: [
+      { id: 'A', name: '数据源配置', enabled: true, icon: <Database size={14} /> },
+      { id: 'B', name: '扫描与画像', enabled: true, icon: <Search size={14} /> },
+      { id: 'C', name: '质量检测', enabled: true, icon: <ShieldCheck size={14} /> },
+      { id: 'D', name: '语义理解', enabled: true, icon: <Brain size={14} /> },
+      { id: 'E', name: '对象生成', enabled: true, icon: <Lightbulb size={14} /> },
+    ],
+    quality: [
+      { id: 'A', name: '数据源配置', enabled: true, icon: <Database size={14} /> },
+      { id: 'B', name: '扫描与画像', enabled: true, icon: <Search size={14} /> },
+      { id: 'C', name: '质量检测', enabled: true, icon: <ShieldCheck size={14} /> },
+      { id: 'D', name: '语义理解', enabled: false, icon: <Brain size={14} /> },
+      { id: 'E', name: '对象生成', enabled: false, icon: <Lightbulb size={14} /> },
+    ]
+  };
+
+  // Predicted plan based on description
+  const [predictedPlan, setPredictedPlan] = useState<any[]>(planTemplates.full);
+
+  const [aiTip, setAiTip] = useState('当前需求复杂度为 LOW，L2 引擎可实现 90% 以上的自动化覆盖。建议开启 Stage C 以确保数据质量。');
+
+  const analyzeRequest = (input: string) => {
+    if (!input.trim()) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
-      content: description,
+      content: input,
       timestamp: new Date()
     };
 
@@ -77,10 +107,29 @@ export const RequestCreateModal: React.FC<RequestCreateModalProps> = ({ isOpen, 
     // Mock AI Response
     setTimeout(() => {
       setIsAnalyzing(false);
+      
+      let content = '';
+      
+      if (input.includes('质量') || input.includes('检测')) {
+        content = `识别到您的需求侧重于 **数据质量治理**。我已为您匹配了 **数据质量专家 (L1)**，并优化了执行计划，重点开启质量检测环节。`;
+        setSelectedEmployee(employees.quality);
+        setPredictedPlan(planTemplates.quality);
+        setAiTip('已为您切换至质量治理模式。Stage C 将应用行业标准的质量规则模版，建议保持开启以发现潜在数据风险。');
+      } else if (input.includes('扫描')) {
+        content = `已为您配置 **扫描与画像** 专项任务。该任务将深入分析表结构、数据分布及血缘关系。`;
+        setPredictedPlan(planTemplates.full.map(s => ({ ...s, enabled: s.id === 'A' || s.id === 'B' })));
+        setAiTip('扫描任务将消耗较多计算资源，建议在业务低峰期执行。');
+      } else {
+        content = `我已理解您的需求。我将为您在 **零售业务域** 执行全流程治理。识别到涉及资产：**public.orders**, **public.customers**。我已为您匹配了 **数据语义理解 (L2)** 引擎。`;
+        setSelectedEmployee(employees.semantic);
+        setPredictedPlan(planTemplates.full);
+        setAiTip('全流程治理模式下，L2 引擎将自动完成从扫描到对象生成的闭环，预计可节省 80% 的人工投入。');
+      }
+
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `我已理解您的需求。我将为您在 **零售业务域** 执行全流程治理。识别到涉及资产：**public.orders**, **public.customers**。我已经为您生成了初步的执行计划，您可以点击右侧面板进行微调。`,
+        content: content,
         timestamp: new Date(),
         metadata: {
           domain: 'retail',
@@ -91,6 +140,14 @@ export const RequestCreateModal: React.FC<RequestCreateModalProps> = ({ isOpen, 
       };
       setMessages(prev => [...prev, assistantMessage]);
     }, 1500);
+  };
+
+  const handleSendMessage = () => {
+    analyzeRequest(description);
+  };
+
+  const handleQuickPrompt = (label: string) => {
+    analyzeRequest(label);
   };
 
   const toggleStep = (id: string) => {
@@ -109,10 +166,9 @@ export const RequestCreateModal: React.FC<RequestCreateModalProps> = ({ isOpen, 
 
   const quickPrompts = [
     { label: '一键运行全流程 (L2)', icon: <Sparkles size={14} /> },
-    { label: '只跑扫描', icon: <Database size={14} /> },
-    { label: '只跑语义理解', icon: <Globe size={14} /> },
-    { label: '生成候选对象', icon: <Table size={14} /> },
-    { label: '生成质量规则草案', icon: <Wand2 size={14} /> },
+    { label: '执行数据质量检测', icon: <ShieldCheck size={14} /> },
+    { label: '只跑扫描与画像', icon: <Database size={14} /> },
+    { label: '生成语义候选对象', icon: <Table size={14} /> },
   ];
 
   return (
@@ -228,7 +284,7 @@ export const RequestCreateModal: React.FC<RequestCreateModalProps> = ({ isOpen, 
                     {quickPrompts.map(prompt => (
                       <button 
                         key={prompt.label}
-                        onClick={() => setDescription(prompt.label)}
+                        onClick={() => handleQuickPrompt(prompt.label)}
                         className="flex items-center gap-1.5 px-4 py-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-full text-xs text-slate-400 hover:text-indigo-400 transition-all"
                       >
                         {prompt.icon}
@@ -351,11 +407,12 @@ export const RequestCreateModal: React.FC<RequestCreateModalProps> = ({ isOpen, 
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1.5">
                       <h4 className="font-bold text-white text-lg tracking-tight">{selectedEmployee.name}</h4>
-                      <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-400 text-[10px] font-bold rounded-full border border-indigo-500/30">L2 ENGINE</span>
+                      <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-400 text-[10px] font-bold rounded-full border border-indigo-500/30">{selectedEmployee.level} ENGINE</span>
                     </div>
                     <div className="flex items-center gap-4 text-xs">
-                      <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                        <Activity size={12} /> 匹配度: 100%
+                      <div className={`flex items-center gap-1.5 font-bold transition-colors ${isAnalyzing ? 'text-indigo-400' : 'text-emerald-400'}`}>
+                        {isAnalyzing ? <RefreshCcw size={12} className="animate-spin" /> : <Activity size={12} />}
+                        {isAnalyzing ? '正在匹配最佳引擎...' : '匹配度: 100%'}
                       </div>
                       <div className="w-px h-3 bg-slate-700"></div>
                       <div className="text-slate-400 flex items-center gap-1.5">
@@ -440,7 +497,7 @@ export const RequestCreateModal: React.FC<RequestCreateModalProps> = ({ isOpen, 
                     <Info size={12} /> AI 提示
                   </h4>
                   <p className="text-[11px] text-slate-400 leading-relaxed">
-                    当前需求复杂度为 <span className="text-emerald-400 font-bold">LOW</span>，L2 引擎可实现 90% 以上s的自动化覆盖。建议开启 Stage C 以确保数据质量。
+                    {aiTip}
                   </p>
                 </div>
               </div>
