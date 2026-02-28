@@ -17,13 +17,40 @@ export const mockAIOpsRequests: AIOpsRequest[] = [
       { id: 'E', name: '候选对象', status: 'pending', description: '生成逻辑视图与指标候选建议' },
     ],
     tasks: [
-      { id: 'task-1', title: '确认订单表主键唯一性', status: 'done', type: 'hard-block' },
-      { id: 'task-2', title: '补充商品分类枚举值映射', status: 'in_progress', type: 'soft-task' },
-      { id: 'task-3', title: '修复客户表地址字段空值过高问题', status: 'todo', type: 'hard-block' },
+      { 
+        id: 'task-1', 
+        title: '确认订单表主键唯一性', 
+        status: 'done', 
+        type: 'hard-block',
+        task_type: 'METADATA_MISSING',
+        stage: 'B',
+        asset_ref: 'public.orders.order_id',
+        reason: '主键约束缺失'
+      },
+      { 
+        id: 'task-2', 
+        title: '补充商品分类枚举值映射', 
+        status: 'todo', 
+        type: 'soft-task',
+        task_type: 'ENUM_MAPPING_REQUIRED',
+        stage: 'D',
+        asset_ref: 'public.products.category',
+        reason: 'AI 识别出 5 个未映射枚举值'
+      },
+      { 
+        id: 'task-3', 
+        title: '修复客户表地址字段空值过高问题', 
+        status: 'todo', 
+        type: 'hard-block',
+        task_type: 'DATA_QUALITY_ISSUE',
+        stage: 'C',
+        asset_ref: 'public.customers.address',
+        reason: '空值率 85% > 20%'
+      },
     ],
     deliverables: [
-      { id: 'del-1', name: '零售域元数据扫描报告', type: 'PDF' },
-      { id: 'del-2', name: '数据质量检测明细', type: 'Excel' },
+      { id: 'del-1', name: '零售域元数据扫描报告', type: 'PDF', createdAt: '2024-02-21T11:30:00Z' },
+      { id: 'del-2', name: '数据质量检测明细', type: 'Excel', createdAt: '2024-02-25T14:30:00Z' },
     ],
     runs: [
       { id: 'run-1', stageId: 'A', startTime: '2024-02-20T10:05:00Z', endTime: '2024-02-20T10:15:00Z', status: 'completed', progress: 100 },

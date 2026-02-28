@@ -61,7 +61,7 @@ export const RequestCreateModal: React.FC<RequestCreateModalProps> = ({ isOpen, 
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                <Database size={16} className="text-cyan-400" /> Section A: 上下文 (Context)
+                <Database size={16} className="text-cyan-400" /> Section A: 上下文
               </h3>
               <label className="flex items-center gap-2 cursor-pointer group">
                 <span className="text-xs text-slate-500 group-hover:text-slate-300 transition-colors">从当前页面带入</span>
@@ -76,7 +76,7 @@ export const RequestCreateModal: React.FC<RequestCreateModalProps> = ({ isOpen, 
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs text-slate-500 ml-1">业务域 (Domain)</label>
+                <label className="text-xs text-slate-500 ml-1">业务域</label>
                 <select 
                   value={domain}
                   onChange={(e) => setDomain(e.target.value)}
@@ -88,7 +88,7 @@ export const RequestCreateModal: React.FC<RequestCreateModalProps> = ({ isOpen, 
                 </select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs text-slate-500 ml-1">数据源 (Datasource)</label>
+                <label className="text-xs text-slate-500 ml-1">数据源</label>
                 <select 
                   value={datasource}
                   onChange={(e) => setDatasource(e.target.value)}
@@ -102,7 +102,7 @@ export const RequestCreateModal: React.FC<RequestCreateModalProps> = ({ isOpen, 
 
             <div className="space-y-1.5">
               <label className="text-xs text-slate-500 ml-1 flex items-center justify-between">
-                资产选择 (Asset Picker)
+                资产选择
                 <span className="text-[10px] text-cyan-400 cursor-pointer hover:underline">管理选择</span>
               </label>
               <div className="flex flex-wrap gap-2 p-3 bg-slate-800/50 border border-slate-700 rounded-xl min-h-[44px]">
@@ -123,7 +123,7 @@ export const RequestCreateModal: React.FC<RequestCreateModalProps> = ({ isOpen, 
           {/* Section B: Request Description */}
           <section className="space-y-4">
             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <Sparkles size={16} className="text-indigo-400" /> Section B: 需求描述 (Request)
+              <Sparkles size={16} className="text-indigo-400" /> Section B: 需求描述
             </h3>
             <div className="relative">
               <textarea 
@@ -188,10 +188,10 @@ export const RequestCreateModal: React.FC<RequestCreateModalProps> = ({ isOpen, 
 
               <div className="mt-6 flex items-center gap-3 relative z-10">
                 <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
-                  <CheckCircle2 size={14} /> Use Recommended
+                  <CheckCircle2 size={14} /> 使用推荐员工
                 </button>
                 <button className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-xl text-xs font-bold border border-slate-700 transition-all flex items-center justify-center gap-2">
-                  <Users size={14} /> Change Employee
+                  <Users size={14} /> 更换员工
                 </button>
               </div>
             </div>
@@ -209,13 +209,13 @@ export const RequestCreateModal: React.FC<RequestCreateModalProps> = ({ isOpen, 
               onClick={() => onCreate({ domain, datasource, selectedAssets, description }, false)}
               className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-bold border border-slate-700 transition-all flex items-center gap-2"
             >
-              <Save size={18} /> Create Only
+              <Save size={18} /> 仅创建
             </button>
             <button 
               onClick={() => onCreate({ domain, datasource, selectedAssets, description }, true)}
               className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-900/40 transition-all flex items-center gap-2 active:scale-95"
             >
-              <Play size={18} /> Create & Start
+              <Play size={18} /> 创建并启动
             </button>
           </div>
         </div>

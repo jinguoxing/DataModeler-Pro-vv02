@@ -9,20 +9,106 @@ import {
   ListTodo, Package, Activity, Info
 } from 'lucide-react';
 import { StageDetailContent } from '../../components/aiops/stages/StageDetailContent';
+import { ChatContextBar } from '../../components/aiops/chat/ChatContextBar';
+import { ChatMessageStream } from '../../components/aiops/chat/ChatMessageStream';
+import { ChatComposer } from '../../components/aiops/chat/ChatComposer';
+import { ChatMessage } from '../../types/aiops';
+import { RunConsole } from '../../components/aiops/console/RunConsole';
 
 export const AIOpsRequestDetailPage: React.FC = () => {
   const { requestId, stageId } = useParams<{ requestId: string; stageId?: StageId }>();
   const navigate = useNavigate();
   const [request, setRequest] = useState<AIOpsRequest | null>(null);
   const [activeTab, setActiveTab] = useState<'chat' | 'runs' | 'tasks' | 'deliverables'>('chat');
-  const [chatInput, setChatInput] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
     const found = mockAIOpsRequests.find(r => r.id === requestId);
-    if (found) setRequest(found);
+    if (found) {
+      setRequest(found);
+      // Mock initial messages
+      setMessages([
+        {
+          id: '1',
+          type: 'user',
+          content: '帮我扫描零售域订单相关的表，并自动生成逻辑视图和核心指标建议',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+          sender: 'user'
+        },
+        {
+          id: '2',
+          type: 'plan',
+          timestamp: new Date(Date.now() - 1000 * 60 * 55).toISOString(),
+          sender: 'ai',
+          data: {
+            steps: [
+              { title: '元数据扫描', description: '扫描所选 4 张表的结构与元数据' },
+              { title: '数据画像分析', description: '分析字段分布、空值率与唯一性' },
+              { title: '语义关联识别', description: '识别主外键关系与业务术语匹配' },
+              { title: '候选对象生成', description: '生成 3 个逻辑视图与 5 个核心指标' }
+            ]
+          }
+        },
+        {
+          id: '3',
+          type: 'progress',
+          timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+          sender: 'ai',
+          data: {
+            progress: 65,
+            stats: [
+              { label: '已扫描表', value: '4/4' },
+              { label: '识别字段', value: '156' },
+              { label: '画像完成度', value: '100%' },
+              { label: '语义匹配数', value: '12' }
+            ]
+          }
+        },
+        {
+          id: '4',
+          type: 'blocker',
+          timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+          sender: 'ai',
+          data: {
+            blockers: [
+              { type: 'hard', title: '客户表地址字段空值率过高 (85%)，影响画像准确性' },
+              { type: 'soft', title: '建议补充商品分类枚举值映射，以提升语义理解质量' }
+            ]
+          }
+        }
+      ]);
+    }
   }, [requestId]);
 
   if (!request) return <div className="p-10 text-center text-slate-500">加载中...</div>;
+
+  const handleSend = (content: string, attachContext: boolean) => {
+    const newMessage: ChatMessage = {
+      id: Date.now().toString(),
+      type: 'user',
+      content,
+      timestamp: new Date().toISOString(),
+      sender: 'user'
+    };
+    setMessages(prev => [...prev, newMessage]);
+    
+    // Mock AI response
+    setTimeout(() => {
+      const aiResponse: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'deliverable',
+        timestamp: new Date().toISOString(),
+        sender: 'ai',
+        data: {
+          items: [
+            { name: '零售域元数据扫描报告', type: 'PDF' },
+            { name: '数据质量检测明细', type: 'Excel' }
+          ]
+        }
+      };
+      setMessages(prev => [...prev, aiResponse]);
+    }, 1000);
+  };
 
   const handleStageClick = (sId: StageId) => {
     navigate(`/aiops/workbench/requests/${requestId}/stages/${sId}`);
@@ -60,199 +146,56 @@ export const AIOpsRequestDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Content Area: Split Layout */}
       <div className="flex-1 flex gap-6 min-h-0">
-        {/* Left Column: Stages & Progress */}
-        <div className="w-80 flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
-          <div className="bg-slate-800/40 rounded-2xl border border-slate-700/50 p-5 backdrop-blur-sm">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <Activity size={14} /> 阶段进度
+        {/* Left Column: Chat & Plan */}
+        <div className="flex-1 flex flex-col min-h-0 bg-slate-800/40 rounded-2xl border border-slate-700/50 backdrop-blur-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-700/50 bg-slate-900/30 flex items-center justify-between">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <MessageSquare size={14} className="text-indigo-400" /> 对话与计划
             </h3>
-            <div className="space-y-3">
-              {request.stages.map((stage, idx) => (
-                <div 
-                  key={stage.id}
-                  onClick={() => handleStageClick(stage.id)}
-                  className={`relative p-4 rounded-xl border transition-all cursor-pointer group ${
-                    stageId === stage.id 
-                      ? 'bg-cyan-500/10 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.1)]' 
-                      : 'bg-slate-900/50 border-slate-700 hover:border-slate-600'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">Stage {stage.id}</span>
-                    {stage.status === 'completed' ? (
-                      <CheckCircle2 size={14} className="text-emerald-500" />
-                    ) : stage.status === 'running' ? (
-                      <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)]"></div>
-                    ) : stage.status === 'failed' ? (
-                      <AlertCircle size={14} className="text-rose-500" />
-                    ) : (
-                      <Clock size={14} className="text-slate-600" />
-                    )}
-                  </div>
-                  <h4 className={`font-bold text-sm ${stageId === stage.id ? 'text-cyan-400' : 'text-slate-200'}`}>{stage.name}</h4>
-                  <p className="text-[10px] text-slate-500 mt-1 line-clamp-1">{stage.description}</p>
-                  
-                  {idx < request.stages.length - 1 && (
-                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-px h-3 bg-slate-700"></div>
-                  )}
-                </div>
-              ))}
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase">AI 助手在线</span>
             </div>
+          </div>
+          
+          <div className="flex-1 flex flex-col min-h-0">
+            <ChatContextBar 
+              domain="零售业务域" 
+              datasource="PostgreSQL 生产库 01" 
+              assets={['public.orders', 'public.order_items', 'public.products', 'public.customers']}
+              employee={{ name: '数据语义理解 (L2)', version: '1.2.4', level: 'L2' }}
+            />
+            <ChatMessageStream messages={messages} />
+            <ChatComposer 
+              onSend={handleSend} 
+              onStartResume={() => {
+                if (request) {
+                  const isRunning = request.runs.some(r => r.status === 'running');
+                  const updatedRequest = { ...request };
+                  if (isRunning) {
+                    updatedRequest.runs = updatedRequest.runs.map(r => r.status === 'running' ? { ...r, status: 'completed' as const } : r);
+                  } else {
+                    updatedRequest.runs = [...updatedRequest.runs, {
+                      id: Date.now().toString(),
+                      stageId: 'D',
+                      startTime: new Date().toISOString(),
+                      status: 'running' as const,
+                      progress: 0
+                    }];
+                  }
+                  setRequest(updatedRequest);
+                }
+              }} 
+              isRunning={request.runs.some(r => r.status === 'running')} 
+            />
           </div>
         </div>
 
-        {/* Right Column: Interaction & Details */}
-        <div className="flex-1 bg-slate-800/40 rounded-2xl border border-slate-700/50 backdrop-blur-sm flex flex-col overflow-hidden">
-          {/* Tabs */}
-          <div className="flex items-center px-6 border-b border-slate-700/50 bg-slate-900/30">
-            {[
-              { id: 'chat', label: 'Chat & Plan', icon: <MessageSquare size={16} /> },
-              { id: 'runs', label: 'Runs 进度', icon: <Play size={16} /> },
-              { id: 'tasks', label: '任务看板', icon: <ListTodo size={16} /> },
-              { id: 'deliverables', label: '交付物', icon: <Package size={16} /> },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-all relative ${
-                  activeTab === tab.id ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-300'
-                }`}
-              >
-                {tab.icon}
-                {tab.label}
-                {activeTab === tab.id && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]"></div>
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* Tab Content */}
-          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-            {activeTab === 'chat' && (
-              <div className="h-full flex flex-col">
-                <div className="flex-1 space-y-6 mb-6">
-                  <div className="flex gap-4">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white flex-shrink-0">
-                      <Bot size={18} />
-                    </div>
-                    <div className="bg-slate-900/80 p-4 rounded-2xl rounded-tl-none border border-slate-700 max-w-[80%]">
-                      <p className="text-sm text-slate-200 leading-relaxed">
-                        你好！我是你的 AI 运营助手。目前该需求处于 <span className="text-cyan-400 font-bold">Stage C: 质量规则与检测</span> 阶段。
-                        我已经自动生成了初步的质量检测计划，并发现了一些需要你关注的硬性阻碍（Hard-block）。
-                      </p>
-                      <div className="mt-4 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
-                        <p className="text-xs font-bold text-indigo-400 uppercase mb-2">当前计划建议</p>
-                        <ul className="text-xs text-slate-400 space-y-1.5">
-                          <li className="flex items-center gap-2"><div className="w-1 h-1 bg-indigo-400 rounded-full"></div> 优先修复客户表地址字段的空值问题</li>
-                          <li className="flex items-center gap-2"><div className="w-1 h-1 bg-indigo-400 rounded-full"></div> 启动 Stage D 的语义预扫描</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-4 justify-end">
-                    <div className="bg-indigo-600 p-4 rounded-2xl rounded-tr-none max-w-[80%] shadow-lg shadow-indigo-900/20">
-                      <p className="text-sm text-white leading-relaxed">
-                        好的，请帮我先执行 Stage D 的预扫描，并把扫描结果汇总到交付物中。
-                      </p>
-                    </div>
-                    <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-white flex-shrink-0">
-                      <User size={18} />
-                    </div>
-                  </div>
-                </div>
-                <div className="relative">
-                  <input 
-                    type="text" 
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="输入指令或提问，例如：'生成本阶段报告'..." 
-                    className="w-full bg-slate-900/80 border border-slate-700 rounded-2xl py-4 pl-6 pr-14 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"
-                  />
-                  <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 transition-colors">
-                    <Send size={18} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'runs' && (
-              <div className="space-y-4">
-                {request.runs.map(run => (
-                  <div key={run.id} className="bg-slate-900/50 border border-slate-700 rounded-xl p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className={`p-2 rounded-lg ${run.status === 'running' ? 'bg-cyan-500/10 text-cyan-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
-                        {run.status === 'running' ? <Activity size={20} /> : <CheckCircle2 size={20} />}
-                      </div>
-                      <div>
-                        <p className="font-bold text-white">Stage {run.stageId} 执行记录</p>
-                        <p className="text-xs text-slate-500">{new Date(run.startTime).toLocaleString()} - {run.endTime ? new Date(run.endTime).toLocaleTimeString() : '进行中'}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <div className="w-32 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-cyan-500 transition-all duration-500" style={{ width: `${run.progress}%` }}></div>
-                      </div>
-                      <span className="text-sm font-mono text-cyan-400">{run.progress}%</span>
-                      <ChevronRight size={18} className="text-slate-600" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'tasks' && (
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h4 className="text-xs font-bold text-rose-400 uppercase tracking-widest flex items-center gap-2">
-                    <AlertCircle size={14} /> Hard-block (阻碍性任务)
-                  </h4>
-                  {request.tasks.filter(t => t.type === 'hard-block').map(task => (
-                    <div key={task.id} className="bg-slate-900/50 border-l-4 border-l-rose-500 border border-slate-700 p-4 rounded-r-xl">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${task.status === 'done' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-                          {task.status === 'done' ? '已修复' : '待处理'}
-                        </span>
-                        <button className="text-slate-500 hover:text-white transition-colors"><Info size={14} /></button>
-                      </div>
-                      <p className="text-sm font-medium text-slate-200">{task.title}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="space-y-4">
-                  <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-widest flex items-center gap-2">
-                    <ListTodo size={14} /> Soft-task (优化任务)
-                  </h4>
-                  {request.tasks.filter(t => t.type === 'soft-task').map(task => (
-                    <div key={task.id} className="bg-slate-900/50 border-l-4 border-l-cyan-500 border border-slate-700 p-4 rounded-r-xl">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${task.status === 'done' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
-                          {task.status === 'done' ? '已完成' : '进行中'}
-                        </span>
-                      </div>
-                      <p className="text-sm font-medium text-slate-200">{task.title}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'deliverables' && (
-              <div className="grid grid-cols-3 gap-4">
-                {request.deliverables.map(del => (
-                  <div key={del.id} className="bg-slate-900/50 border border-slate-700 p-4 rounded-xl hover:border-cyan-500/50 transition-all group cursor-pointer">
-                    <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-cyan-400 mb-4 transition-colors">
-                      <FileText size={24} />
-                    </div>
-                    <p className="font-bold text-sm text-slate-200 mb-1">{del.name}</p>
-                    <p className="text-[10px] text-slate-500 uppercase">{del.type} 文件</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        {/* Right Column: Console */}
+        <div className="w-[500px] flex flex-col min-h-0">
+          <RunConsole request={request} onStageClick={handleStageClick} />
         </div>
       </div>
 

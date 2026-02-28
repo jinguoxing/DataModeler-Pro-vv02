@@ -13,6 +13,10 @@ export interface AIOpsTask {
   title: string;
   status: 'todo' | 'in_progress' | 'done';
   type: 'hard-block' | 'soft-task';
+  task_type: 'CREDENTIAL_REQUIRED' | 'SEMANTIC_CONFLICT' | 'DATA_QUALITY_ISSUE' | 'METADATA_MISSING' | 'ENUM_MAPPING_REQUIRED';
+  stage: StageId;
+  asset_ref?: string;
+  reason?: string;
 }
 
 export interface AIOpsDeliverable {
@@ -20,6 +24,7 @@ export interface AIOpsDeliverable {
   name: string;
   type: string;
   url?: string;
+  createdAt: string;
 }
 
 export interface AIOpsRun {
@@ -42,4 +47,21 @@ export interface AIOpsRequest {
   tasks: AIOpsTask[];
   deliverables: AIOpsDeliverable[];
   runs: AIOpsRun[];
+}
+
+export type ChatMessageType = 
+  | 'user' 
+  | 'plan' 
+  | 'progress' 
+  | 'blocker' 
+  | 'result' 
+  | 'deliverable';
+
+export interface ChatMessage {
+  id: string;
+  type: ChatMessageType;
+  content?: string;
+  timestamp: string;
+  sender?: 'user' | 'ai';
+  data?: any;
 }
