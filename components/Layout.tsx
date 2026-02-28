@@ -77,6 +77,16 @@ export const Layout: React.FC = () => {
 
           <div className="mb-6">
             <p className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+              运营中心
+              {location.pathname.startsWith('/aiops') && <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>}
+            </p>
+            <div className="space-y-0.5">
+               <SidebarItem to="/aiops/workbench" icon={<Bot size={18} />} label="AI 运营工作台" />
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <p className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
               标准中心
               {isStandardsSection && <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>}
             </p>
@@ -181,7 +191,7 @@ export const Layout: React.FC = () => {
         <header className="h-16 border-b border-slate-700/60 px-6 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md bg-slate-900/50">
           <div className="flex items-center text-slate-400 text-sm">
              <span className="text-cyan-400 font-mono">system://工作台</span>
-             {location.pathname.startsWith('/metrics') ? (
+              {location.pathname.startsWith('/metrics') ? (
                 <>
                    <span className="mx-2 text-slate-600">/</span>
                    <span className="text-cyan-400 font-bold">指标中心 (Metric Hub)</span>
@@ -190,6 +200,11 @@ export const Layout: React.FC = () => {
                 <>
                    <span className="mx-2 text-slate-600">/</span>
                    <span className="text-cyan-400 font-bold">语义建模</span>
+                </>
+             ) : location.pathname.startsWith('/aiops') ? (
+                <>
+                   <span className="mx-2 text-slate-600">/</span>
+                   <span className="text-cyan-400 font-bold">运营中心</span>
                 </>
              ) : (
                 <>

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Database, Settings, TableProperties } from 'lucide-react';
+import { LayoutDashboard, Database, Settings, TableProperties, Bot } from 'lucide-react';
 
 export default function App() {
   const location = useLocation();
@@ -17,10 +17,18 @@ export default function App() {
           <Link to="/" className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors ${location.pathname === '/' ? 'bg-indigo-600 text-white' : ''}`}>
             <LayoutDashboard className="w-5 h-5" /> 仪表盘
           </Link>
+
+          <div className="px-4 py-3 text-xs font-bold text-slate-500 uppercase mt-4">运营中心</div>
+          <Link to="/aiops/workbench" className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors ${location.pathname.includes('aiops') ? 'bg-indigo-600 text-white' : ''}`}>
+            <Bot className="w-5 h-5" /> AI 运营工作台
+          </Link>
+
+          <div className="px-4 py-3 text-xs font-bold text-slate-500 uppercase mt-4">建模中心</div>
           <Link to="/semantic-modeling/logical-views" className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors ${location.pathname.includes('semantic-modeling') ? 'bg-indigo-600 text-white' : ''}`}>
             <TableProperties className="w-5 h-5" /> 语义建模
           </Link>
-          <div className="px-4 py-3 text-xs font-bold text-slate-500 uppercase mt-4">Settings</div>
+
+          <div className="px-4 py-3 text-xs font-bold text-slate-500 uppercase mt-4">系统管理</div>
           <Link to="/settings" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
             <Settings className="w-5 h-5" /> 配置中心
           </Link>

@@ -26,6 +26,9 @@ import { OpsPage } from './pages/OpsPage';
 import { CollabInboxPage } from './pages/CollabInboxPage';
 import { CollabHistoryPage } from './pages/CollabHistoryPage';
 import { SettingsPage } from './pages/SettingsPage';
+// AI Ops Workbench
+import { AIOpsWorkbenchPage } from './src/pages/aiops/AIOpsWorkbenchPage';
+import { AIOpsRequestDetailPage } from './src/pages/aiops/AIOpsRequestDetailPage';
 // Metric Hub
 import { MetricListPage } from './pages/metric/MetricListPage';
 import { MetricDetailPage } from './pages/metric/MetricDetailPage';
@@ -101,6 +104,11 @@ const App: React.FC = () => {
           {/* Ops Measurement Routes */}
           <Route path="standards/ops" element={<Navigate to="/standards/ops/dashboard" replace />} />
           <Route path="standards/ops/dashboard" element={<OpsPage />} />
+
+          {/* AI Ops Workbench Routes */}
+          <Route path="aiops/workbench" element={<AIOpsWorkbenchPage />} />
+          <Route path="aiops/workbench/requests/:requestId" element={<AIOpsRequestDetailPage />} />
+          <Route path="aiops/workbench/requests/:requestId/stages/:stageId" element={<AIOpsRequestDetailPage />} />
 
           {/* Settings Route */}
           <Route path="settings" element={<SettingsPage />} />

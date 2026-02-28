@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, AlertTriangle, TableProperties } from 'lucide-react';
-import { useAsync, mockApi, SemanticStatus } from '../../lib/semantic';
+import { useAsync, mockApi, SemanticStatus } from '../../../lib/semantic';
 
 const Badge = ({ status }: { status: SemanticStatus }) => {
   const statusConfig: Record<SemanticStatus, { label: string; color: string }> = {

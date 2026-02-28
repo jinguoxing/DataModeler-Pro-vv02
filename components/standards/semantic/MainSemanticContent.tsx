@@ -172,7 +172,7 @@ export const MainSemanticContent: React.FC<MainSemanticContentProps> = ({ viewTy
                       </div>
                    </div>
                    <p className="text-sm text-slate-300 bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 leading-relaxed">
-                      <span className="text-indigo-400 font-bold">推理逻辑：</span> 该表包含高稳定性的主键 <code className="text-amber-400">emp_id</code>，且被 12 张下游业务表引用作为外键。数据更新频率低，属性字段占比 > 80%，符合主数据特征。
+                      <span className="text-indigo-400 font-bold">推理逻辑：</span> 该表包含高稳定性的主键 <code className="text-amber-400">emp_id</code>，且被 12 张下游业务表引用作为外键。数据更新频率低，属性字段占比 &gt; 80%，符合主数据特征。
                    </p>
                 </div>
 
