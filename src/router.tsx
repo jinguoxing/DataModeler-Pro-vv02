@@ -7,6 +7,7 @@ import LogicalViewDetail from './pages/LogicalViewDetail';
 import { AIOpsWorkbenchPage } from './pages/aiops/AIOpsWorkbenchPage';
 import { AIOpsRequestDetailPage } from './pages/aiops/AIOpsRequestDetailPage';
 import { AIOpsStageDetailPage } from './pages/aiops/AIOpsStageDetailPage';
+import { FieldWorkbenchPage } from './pages/semantic/FieldWorkbenchPage';
 
 export const router = createHashRouter([
   {
@@ -33,6 +34,10 @@ export const router = createHashRouter([
       {
         path: 'aiops/workbench/requests/:requestId/stages/:stageId',
         element: <AIOpsRequestDetailPage />
+      },
+      {
+        path: 'semantic/workbench/:lvId',
+        element: <FieldWorkbenchPage />
       },
       { path: '*', element: <div className="p-10">404 Not Found</div> }
     ]

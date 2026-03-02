@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { StageId } from '../../../types/aiops';
+import { FieldDrawer } from '../../semantic/FieldDrawer';
 import { 
   Database, Search, ShieldCheck, Brain, Lightbulb, ArrowLeft,
   CheckCircle2, AlertCircle, Settings, RefreshCcw, Eye,
@@ -25,107 +26,21 @@ export const StageDetailContent: React.FC<StageDetailProps> = ({ stageId, reques
     if (!selectedField) return null;
 
     return (
-      <div className="fixed inset-y-0 right-0 w-[450px] bg-slate-900 border-l border-slate-700 shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
-        <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md sticky top-0">
-          <div>
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <Brain className="text-indigo-400" size={20} /> 字段语义决策
-            </h3>
-            <p className="text-xs text-slate-500 mt-1 font-mono">{selectedField}</p>
-          </div>
-          <button 
-            onClick={() => setSelectedField(null)}
-            className="p-2 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-all"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-6 space-y-8">
-          {/* TopK Candidates */}
-          <section>
-            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <Layers size={14} /> TopK 联合候选 (Joint Candidates)
-            </h4>
-            <div className="space-y-3">
-              {[
-                { type: 'MEASURE', role: 'AMOUNT', score: 0.92, breakdown: { type: 0.95, role: 0.88, compat: 0.94, penalty: 0.02 } },
-                { type: 'DIM', role: 'PRICE', score: 0.78, breakdown: { type: 0.82, role: 0.75, compat: 0.80, penalty: 0.05 } },
-                { type: 'ID', role: 'CODE', score: 0.45, breakdown: { type: 0.50, role: 0.40, compat: 0.55, penalty: 0.10 } },
-              ].map((cand, i) => (
-                <div key={i} className={`p-4 rounded-2xl border transition-all cursor-pointer ${i === 0 ? 'bg-indigo-500/10 border-indigo-500/30' : 'bg-slate-800/40 border-slate-700/50 hover:border-slate-600'}`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 bg-slate-900 text-indigo-400 rounded text-[10px] font-bold font-mono">{cand.type}</span>
-                      <span className="text-slate-700">/</span>
-                      <span className="px-2 py-0.5 bg-slate-900 text-slate-300 rounded text-[10px] font-bold font-mono">{cand.role}</span>
-                    </div>
-                    <span className="text-sm font-bold text-white font-mono">{cand.score}</span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-2">
-                    <div className="text-center">
-                      <p className="text-[9px] text-slate-500 uppercase">Type</p>
-                      <p className="text-[10px] font-mono text-slate-300">{cand.breakdown.type}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[9px] text-slate-500 uppercase">Role</p>
-                      <p className="text-[10px] font-mono text-slate-300">{cand.breakdown.role}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[9px] text-slate-500 uppercase">Compat</p>
-                      <p className="text-[10px] font-mono text-slate-300">{cand.breakdown.compat}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[9px] text-slate-500 uppercase">Penalty</p>
-                      <p className="text-[10px] font-mono text-rose-400">-{cand.breakdown.penalty}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Evidence D1~D8 */}
-          <section>
-            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <Info size={14} /> 证据链 (Evidence D1~D8)
-            </h4>
-            <div className="space-y-2">
-              {[
-                { id: 'D1', title: '元数据名称匹配', content: '字段名 "total_amt" 与业务术语 "订单总额" 语义相似度 0.94' },
-                { id: 'D2', title: '数据画像分布', content: '数值分布符合金额特征，无负数，均值 124.5' },
-                { id: 'D3', title: '血缘传播证据', content: '上游字段 "raw_amount" 已确认为 AMOUNT 类型' },
-                { id: 'D4', title: '查询日志上下文', count: 12, content: '常用于 SUM() 聚合函数，与 order_id 关联' },
-              ].map((ev, i) => (
-                <div key={i} className="bg-slate-800/40 border border-slate-700/50 rounded-xl overflow-hidden">
-                  <div className="px-4 py-2 bg-slate-800/60 flex items-center justify-between cursor-pointer hover:bg-slate-800 transition-colors">
-                    <span className="text-[10px] font-bold text-slate-400 flex items-center gap-2">
-                      <span className="text-indigo-400">{ev.id}</span> {ev.title}
-                    </span>
-                    <ChevronRight size={12} className="text-slate-600" />
-                  </div>
-                  <div className="p-3 text-[11px] text-slate-500 leading-relaxed border-t border-slate-700/30">
-                    {ev.content}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        </div>
-
-        <div className="p-6 border-t border-slate-800 bg-slate-900/80 backdrop-blur-md grid grid-cols-2 gap-3">
-          <button className="py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2">
-            <Check size={14} /> 确认 Top1
-          </button>
-          <button className="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-700 transition-all">
-            选择 Top2
-          </button>
-          <button className="py-2.5 bg-slate-900/50 hover:bg-rose-500/10 hover:text-rose-400 text-slate-500 rounded-xl text-xs font-bold border border-dashed border-slate-700 hover:border-rose-500/30 transition-all">
-            标记忽略 (IGNORE)
-          </button>
-          <button className="py-2.5 bg-slate-900/50 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-bold border border-slate-700 transition-all flex items-center justify-center gap-2">
-            <RotateCw size={14} /> 重新运行
-          </button>
+      <div className="fixed inset-y-0 right-0 w-[450px] z-50">
+        <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" onClick={() => setSelectedField(null)}></div>
+        <div className="relative h-full">
+          <FieldDrawer 
+            fieldId={selectedField} 
+            onClose={() => setSelectedField(null)}
+            onConfirm={(id) => {
+              console.log('Confirmed field:', id);
+              setSelectedField(null);
+            }}
+            onIgnore={(id) => {
+              console.log('Ignored field:', id);
+              setSelectedField(null);
+            }}
+          />
         </div>
       </div>
     );
